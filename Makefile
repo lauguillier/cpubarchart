@@ -1,4 +1,4 @@
-CFLAGS = -Wall -Wextra -pedantic -std=c11 -O2 `pkg-config --cflags --libs gtk+-3.0` `pkg-config  --cflags --libs cairo`
+CFLAGS = -Wall -Wextra -pedantic -std=c11 -O2 `pkg-config --cflags --libs gtk+-3.0` 
 
 
 all: cpubarchart
@@ -13,5 +13,5 @@ test: cpubarchart.c
 clean:
 	rm -rf *.o cpubarchart
 
-.PHONY:  clean
+.PHONY:  clean test
 
