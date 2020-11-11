@@ -193,6 +193,36 @@ gboolean time_handler(GtkWidget *widget)
 	return TRUE;
 }
 
+static void resizechange(GtkWidget *widget, GdkEvent *event, gpointer user_data)
+{
+    
+	int new_width, new_height;
+
+	// Make sure the window dimensions have changed (we land here also when the window is moved!)
+	// Get the new dimension
+	gtk_window_get_size (widget, &new_width, &new_height);
+
+	if ((new_width == cgeo->ww) && (new_height == cgeo->wh))
+		return; // the window has just been moved
+
+	// The window has been resized
+	//printf("User resized window: %d x %d\n", new_width, new_height);
+	cgeo->ww = new_width;
+	cgeo->wh = new_height;
+	// Compute the new geometry
+	cgeo->w = cgeo->ww /  cgeo->wratio;
+	cgeo->h = cgeo->wh / cgeo->hratio;
+	cgeo->fullscale = cgeo->h;
+	cgeo->x0 = cgeo->w * (cgeo->wratio -1) / 2;
+	cgeo->y0 = cgeo->fullscale *(cgeo->hratio - 1) / 2;    
+	cgeo->cent = cgeo->y0; //(cgeo->h - cgeo->fullscale) / 2;
+	cgeo->zero = cgeo->cent + cgeo->fullscale;
+	cgeo->fifty = (cgeo->cent + cgeo->zero) / 2;
+	cgeo->quart = (cgeo->fifty + cgeo->zero) / 2;
+	cgeo->troisquart = (cgeo->fifty + cgeo->cent) / 2;
+	cgeo->barwidth = cgeo->w / ((cgeo->nbcpu-1) * cgeo->barwidth_ratio +1);
+
+}
 
 int main(int argc, char* argv[])
 {
@@ -238,6 +268,8 @@ int main(int argc, char* argv[])
 						G_CALLBACK(on_draw_event), NULL);
 	g_signal_connect (G_OBJECT(window), "destroy",
 						G_CALLBACK(gtk_main_quit), NULL);
+	g_signal_connect (G_OBJECT(window), "configure-event", G_CALLBACK (resizechange), NULL);
+
 
 	gtk_window_set_default_size (window, cgeo->ww, cgeo->wh);
 	//gtk_window_set_resizable (window, FALSE);
