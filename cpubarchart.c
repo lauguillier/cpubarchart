@@ -197,8 +197,7 @@ gboolean time_handler(GtkWidget *widget)
 int main(int argc, char* argv[])
 {
 	GtkWidget *window;          /* gtk windows */
-    GtkWidget *darea;           /* cairo drawing area */
-	guint width, height;
+	GtkWidget *darea;           /* cairo drawing area */
 
 	gtk_init (&argc, &argv);    /* required with every gtk app */
 
@@ -240,8 +239,6 @@ int main(int argc, char* argv[])
 	g_signal_connect (G_OBJECT(window), "destroy",
 						G_CALLBACK(gtk_main_quit), NULL);
 
-    width = gtk_widget_get_allocated_width (darea);
-  	height = gtk_widget_get_allocated_height (darea);
 	gtk_window_set_default_size (window, cgeo->ww, cgeo->wh);
 	//gtk_window_set_resizable (window, FALSE);
 
@@ -249,8 +246,6 @@ int main(int argc, char* argv[])
 	gtk_widget_show_all (window);   /* show all windows */
 
 	printf("This system has %d processors configured and "
-    printf("darea witdh: %d | height: %d\n", width, height);
-	
 	"%d processors available.\n", get_nprocs_conf(), cgeo->nbcpu);
 	printf("window ww: %d | wh: %d\n", cgeo->ww, cgeo->wh);
 	str = (char *)malloc((size_t)STR_LEN);
