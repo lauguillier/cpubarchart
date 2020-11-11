@@ -284,6 +284,9 @@ int main(int argc, char* argv[])
 	printf("window ww: %d | wh: %d\n", cgeo->ww, cgeo->wh);
 	str = (char *)malloc((size_t)STR_LEN);
 	
+	// Call process_stat a first time to initialise first values
+	process_stat(cgeo->nbcpu);
+
 	g_timeout_add(200, (GSourceFunc) time_handler, (gpointer) window);
 	gtk_main();     /* pass control to gtk event-loop */
 
