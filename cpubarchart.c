@@ -17,6 +17,7 @@
 #define DFLT_WR 1.4
 
 #define COLOR_BG 0.203, 0.239, 0.274
+#define COLOR_BAR_BG 0.180, 0.203, 0.211
 #define COLOR_BAR 0.4, 0.6, 0.8
 #define COLOR_AVG 0.960, 0.682, 0.337
 #define COLOR_GRID 0.650, 0.674, 0.725
@@ -73,6 +74,11 @@ void draw_grid(cairo_t *cr)
 	cairo_set_source_rgb(cr, COLOR_BG);
 	cairo_paint(cr);
 	cairo_restore(cr);
+
+	// chart background
+	cairo_set_source_rgb(cr, COLOR_BAR_BG);
+	cairo_rectangle (cr, cgeo->x0, cgeo->y0, cgeo->w, cgeo->h);
+	cairo_fill (cr);
 
 	// Horizontal grid lines
 	draw_hline(cr, cgeo->zero);
