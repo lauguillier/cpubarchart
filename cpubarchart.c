@@ -98,10 +98,10 @@ void draw_bargraph (cairo_t *cr)
 		dy = busyFraction[j] ? busyFraction[j]*cgeo->fullscale/100 : 1;
 		cairo_rectangle(cr, cgeo->x0+cgeo->barwidth*cgeo->barwidth_ratio*(j-1), cgeo->zero-dy, cgeo->barwidth, dy);
 	}
-    cairo_set_source_rgb(cr, COLOR_BAR);   /* set fill color */
-    cairo_fill(cr);                            /* fill rectangle */
+	cairo_set_source_rgb(cr, COLOR_BAR);   /* set fill color */
+	cairo_fill(cr);                            /* fill rectangle */
 
-    // Draw an horizontal line for global CPU load
+	// Draw an horizontal line for global CPU load
 	dy = busyFraction[0]?busyFraction[0]:1;
 	cairo_move_to (cr, cgeo->x0, cgeo->zero-dy);
 	cairo_line_to (cr, cgeo->x0 + cgeo->w, cgeo->zero-dy);
@@ -111,14 +111,21 @@ void draw_bargraph (cairo_t *cr)
 }
 
 static gboolean on_draw_event (GtkWidget *widget, cairo_t *cr,
-                                gpointer user_data)
+							gpointer user_data)
 {
-    draw_bargraph (cr);     /* draw rectangle in window */
+	draw_bargraph (cr);     /* draw rectangle in window */
 
-    return FALSE;
-   (void)user_data, (void)widget;  /* suppress -Wunused warning */
+	return FALSE;
+	(void)user_data, (void)widget;  /* suppress -Wunused warning */
 }
 
+// process_stat() performs the following :
+// - get the (nbcpu+1) first lines in /proc/stat pseudo file,
+// - compute each core activity by comparing idle field evolution since the last call
+// and the total tick evolution since the last call
+// - obviously, first call results are irrelevant
+// - Fisrt line is the average for the whole CPU
+// - next nbcpu lines read the cores stats
 
 int process_stat(int nbcpu)
 {
@@ -127,13 +134,14 @@ int process_stat(int nbcpu)
 	char* token;
 	size_t size;
 	int i, j;
-	int ret;
+	int ret = -1;
 	
 	FILE* fp = fopen("/proc/stat","r");
 	
 
 	for (j=0; j<=nbcpu; j++)
 	{
+		// get the lines 
 		ret = getline(&str, &size, fp);
 		if (ret == -1)
 		{
@@ -145,14 +153,16 @@ int process_stat(int nbcpu)
 		token = strtok(str,d);
 		sum[j] = 0;
 		i = 0;
+		// Get all the numerical fields in the current line
 		while(token!=NULL)
 		{
 			token = strtok(NULL,d);
 			//printf("\t%s\n", token);
 			if(token!=NULL)
 			{
+				// Total time is the sum of all fields
 				sum[j] += atoi(token);
-
+				// idle time is 4th field
 				if(i==3)
 					idle[j] = atoi(token);
 
@@ -160,8 +170,9 @@ int process_stat(int nbcpu)
 			}
 		}
 
+		// If this is the first call, prepare to return 0 to tell the results are irrelevant
 		ret = lastSum[0]?1:0;
-		
+		// Compute the activity of each core plus mean and store 
 		busyFraction[j] = (int)(100.0 - (idle[j]-lastIdle[j])*100.0/(sum[j]-lastSum[j]));
 		lastIdle[j] = idle[j];
 		lastSum[j] = sum[j];
@@ -177,9 +188,9 @@ gboolean time_handler(GtkWidget *widget)
 	
 	process_stat(cgeo->nbcpu);
 
- 	gtk_widget_queue_draw(widget);
+	gtk_widget_queue_draw(widget);
   
-  	return TRUE;
+	return TRUE;
 }
 
 
@@ -191,27 +202,27 @@ int main(int argc, char* argv[])
 
 	gtk_init (&argc, &argv);    /* required with every gtk app */
 
-    window = gtk_window_new (GTK_WINDOW_TOPLEVEL);  /* create window */
-    darea = gtk_drawing_area_new();                 /* create cairo area */
-    gtk_container_add (GTK_CONTAINER(window), darea);   /* add to window */
+	window = gtk_window_new (GTK_WINDOW_TOPLEVEL);  /* create window */
+	darea = gtk_drawing_area_new();                 /* create cairo area */
+	gtk_container_add (GTK_CONTAINER(window), darea);   /* add to window */
 
-    cgeo = (chart_geometry*)malloc(sizeof(chart_geometry));
-    if (cgeo==NULL)
-    {
-    	fprintf(stderr, "Error malloc chart_geometry\n");
-    	return (-1);
-    }
+	cgeo = (chart_geometry*)malloc(sizeof(chart_geometry));
+	if (cgeo==NULL)
+	{
+		fprintf(stderr, "Error malloc chart_geometry\n");
+		return (-1);
+	}
 
 	cgeo->nbcpu = min(get_nprocs(), MAX_CPU);
 
 	// Initial values for geometry
-    cgeo->barwidth = DFLT_BW;
-    cgeo->barwidth_ratio = DFLT_BR;
-    cgeo->hratio = DFLT_HR;
-    cgeo->wratio = DFLT_WR;
-    cgeo->fullscale = DFLT_FS;
-    cgeo->h = cgeo->fullscale;
-    cgeo->w = cgeo->nbcpu * cgeo->barwidth + (cgeo->nbcpu-1) * cgeo->barwidth * (cgeo->barwidth_ratio - 1);
+	cgeo->barwidth = DFLT_BW;
+	cgeo->barwidth_ratio = DFLT_BR;
+	cgeo->hratio = DFLT_HR;
+	cgeo->wratio = DFLT_WR;
+	cgeo->fullscale = DFLT_FS;
+	cgeo->h = cgeo->fullscale;
+	cgeo->w = cgeo->nbcpu * cgeo->barwidth + (cgeo->nbcpu-1) * cgeo->barwidth * (cgeo->barwidth_ratio - 1);
 	cgeo->x0 = cgeo->w * (cgeo->wratio -1) / 2;
 	cgeo->y0 = cgeo->fullscale *(cgeo->hratio - 1) / 2;
 
@@ -220,28 +231,28 @@ int main(int argc, char* argv[])
 	cgeo->fifty = (cgeo->cent + cgeo->zero) / 2;
 	cgeo->quart = (cgeo->fifty + cgeo->zero) / 2;
 	cgeo->troisquart = (cgeo->fifty + cgeo->cent) / 2;
-    cgeo->ww = cgeo->w * cgeo->wratio;
-    cgeo->wh = cgeo->h * cgeo->hratio;
-    /* connect callbacks to draw rectangle and close window/quit app */
-    g_signal_connect (G_OBJECT(darea), "draw",
-                        G_CALLBACK(on_draw_event), NULL);
-    g_signal_connect (G_OBJECT(window), "destroy",
-                        G_CALLBACK(gtk_main_quit), NULL);
+	cgeo->ww = cgeo->w * cgeo->wratio;
+	cgeo->wh = cgeo->h * cgeo->hratio;
 
+	/* connect callbacks to draw rectangle and close window/quit app */
+	g_signal_connect (G_OBJECT(darea), "draw",
+						G_CALLBACK(on_draw_event), NULL);
+	g_signal_connect (G_OBJECT(window), "destroy",
+						G_CALLBACK(gtk_main_quit), NULL);
 
-    gtk_window_set_default_size (window, cgeo->ww, cgeo->wh);
-    //gtk_window_set_resizable (window, FALSE);
     width = gtk_widget_get_allocated_width (darea);
   	height = gtk_widget_get_allocated_height (darea);
+	gtk_window_set_default_size (window, cgeo->ww, cgeo->wh);
+	//gtk_window_set_resizable (window, FALSE);
 
 	gtk_window_set_title (window, "CPU Barchart");
-    gtk_widget_show_all (window);   /* show all windows */
+	gtk_widget_show_all (window);   /* show all windows */
 
 	printf("This system has %d processors configured and "
-    "%d processors available.\n", get_nprocs_conf(), cgeo->nbcpu);
-    printf("window ww: %d | wh: %d\n", cgeo->ww, cgeo->wh);
     printf("darea witdh: %d | height: %d\n", width, height);
 	
+	"%d processors available.\n", get_nprocs_conf(), cgeo->nbcpu);
+	printf("window ww: %d | wh: %d\n", cgeo->ww, cgeo->wh);
 	str = (char *)malloc((size_t)STR_LEN);
 	
 	g_timeout_add(200, (GSourceFunc) time_handler, (gpointer) window);
