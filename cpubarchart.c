@@ -60,6 +60,28 @@ chart_geometry *cgeo;
 
 inline int min ( int a, int b ) { return a < b ? a : b; }
 
+void init_cgeo(chart_geometry *cgeo)
+{
+	// Initial values for geometry
+	cgeo->barwidth = DFLT_BW;
+	cgeo->barwidth_ratio = DFLT_BR;
+	cgeo->hratio = DFLT_HR;
+	cgeo->wratio = DFLT_WR;
+	cgeo->fullscale = DFLT_FS;
+	cgeo->h = cgeo->fullscale;
+	cgeo->w = cgeo->nbcpu * cgeo->barwidth + (cgeo->nbcpu-1) * cgeo->barwidth * (cgeo->barwidth_ratio - 1);
+	cgeo->x0 = cgeo->w * (cgeo->wratio -1) / 2;
+	cgeo->y0 = cgeo->fullscale *(cgeo->hratio - 1) / 2;
+
+	cgeo->cent = cgeo->y0; //(cgeo->h - cgeo->fullscale) / 2;
+	cgeo->zero = cgeo->cent + cgeo->fullscale;
+	cgeo->fifty = (cgeo->cent + cgeo->zero) / 2;
+	cgeo->quart = (cgeo->fifty + cgeo->zero) / 2;
+	cgeo->troisquart = (cgeo->fifty + cgeo->cent) / 2;
+	cgeo->ww = cgeo->w * cgeo->wratio;
+	cgeo->wh = cgeo->h * cgeo->hratio;	
+}
+
 void draw_hline(cairo_t *cr, int h)
 {
 	cairo_move_to (cr, cgeo->x0, h);
@@ -251,32 +273,8 @@ int main(int argc, char* argv[])
 	}
 
 	cgeo->nbcpu = min(get_nprocs(), MAX_CPU);
+	init_cgeo(cgeo);
 
-	// Initial values for geometry
-	cgeo->barwidth = DFLT_BW;
-	cgeo->barwidth_ratio = DFLT_BR;
-	cgeo->hratio = DFLT_HR;
-	cgeo->wratio = DFLT_WR;
-	cgeo->fullscale = DFLT_FS;
-	cgeo->h = cgeo->fullscale;
-	cgeo->w = cgeo->nbcpu * cgeo->barwidth + (cgeo->nbcpu-1) * cgeo->barwidth * (cgeo->barwidth_ratio - 1);
-	cgeo->x0 = cgeo->w * (cgeo->wratio -1) / 2;
-	cgeo->y0 = cgeo->fullscale *(cgeo->hratio - 1) / 2;
-
-	cgeo->cent = cgeo->y0; //(cgeo->h - cgeo->fullscale) / 2;
-	cgeo->zero = cgeo->cent + cgeo->fullscale;
-	cgeo->fifty = (cgeo->cent + cgeo->zero) / 2;
-	cgeo->quart = (cgeo->fifty + cgeo->zero) / 2;
-	cgeo->troisquart = (cgeo->fifty + cgeo->cent) / 2;
-	cgeo->ww = cgeo->w * cgeo->wratio;
-	cgeo->wh = cgeo->h * cgeo->hratio;
-
-	/* connect callbacks to draw rectangle and close window/quit app */
-	g_signal_connect (G_OBJECT(darea), "draw",
-						G_CALLBACK(on_draw_event), NULL);
-	g_signal_connect (G_OBJECT(window), "destroy",
-						G_CALLBACK(gtk_main_quit), NULL);
-	g_signal_connect (G_OBJECT(window), "configure-event", G_CALLBACK (resizechange), NULL);
 
 
 	gtk_window_set_default_size (window, cgeo->ww, cgeo->wh);
