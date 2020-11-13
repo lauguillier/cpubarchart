@@ -275,11 +275,13 @@ int main(int argc, char* argv[])
 	cgeo->nbcpu = min(get_nprocs(), MAX_CPU);
 	init_cgeo(cgeo);
 
+	/* connect callbacks required signals */
+	g_signal_connect(G_OBJECT(darea), "draw", G_CALLBACK(on_draw_event), NULL);
+	g_signal_connect(G_OBJECT(window), "destroy",G_CALLBACK(gtk_main_quit), NULL);
+	g_signal_connect(G_OBJECT(window), "configure-event", G_CALLBACK (resizechange), NULL);
 
 
 	gtk_window_set_default_size (window, cgeo->ww, cgeo->wh);
-	//gtk_window_set_resizable (window, FALSE);
-
 	gtk_window_set_title (window, "CPU Barchart");
 	gtk_widget_show_all (window);   /* show all windows */
 
