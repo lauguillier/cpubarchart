@@ -261,7 +261,10 @@ static void resizechange(GtkWidget *widget, GdkEvent *event, gpointer user_data)
 	cgeo->quart = (cgeo->fifty + cgeo->zero) / 2;
 	cgeo->troisquart = (cgeo->fifty + cgeo->cent) / 2;
 	cgeo->barwidth = cgeo->w / ((cgeo->nbcpu-1) * cgeo->barwidth_ratio +1);
+	// Now add a bias to w to align the right end of the grid to the rightest cpu bar
+	cgeo->w = cgeo->nbcpu * cgeo->barwidth + (cgeo->nbcpu-1) * cgeo->barwidth * (cgeo->barwidth_ratio - 1);
 
+	(void)user_data, (void)widget;  /* suppress -Wunused warning */
 }
 
 int main(int argc, char* argv[])
