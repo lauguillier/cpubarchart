@@ -223,6 +223,16 @@ gboolean time_handler(GtkWidget *widget)
 	return TRUE;
 }
 
+static void clicked(GtkWidget *widget, GdkEvent *event, gpointer user_data)
+{
+	//printf("Button event!\n");
+
+	init_cgeo(cgeo);
+	
+	// Resize window
+	gtk_window_resize (widget, cgeo->ww, cgeo->wh);
+}
+
 static void resizechange(GtkWidget *widget, GdkEvent *event, gpointer user_data)
 {
     
@@ -279,6 +289,7 @@ int main(int argc, char* argv[])
 	g_signal_connect(G_OBJECT(darea), "draw", G_CALLBACK(on_draw_event), NULL);
 	g_signal_connect(G_OBJECT(window), "destroy",G_CALLBACK(gtk_main_quit), NULL);
 	g_signal_connect(G_OBJECT(window), "configure-event", G_CALLBACK (resizechange), NULL);
+	g_signal_connect(G_OBJECT(window), "button-press-event", G_CALLBACK (clicked), NULL);
 
 
 	gtk_window_set_default_size (window, cgeo->ww, cgeo->wh);
