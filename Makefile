@@ -1,4 +1,4 @@
-CFLAGS = -Wall -Wextra -pedantic -std=c11 -O2 `pkg-config --cflags --libs gtk+-3.0` 
+CFLAGS = -Wall -Wextra -pedantic -std=c11 -O2 -no-pie -fno-pie `pkg-config --cflags --libs gtk+-3.0` 
 
 
 all: cpubarchart
