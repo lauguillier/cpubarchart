@@ -12,7 +12,7 @@
 #define MAX_CPU 32
 #define DFLT_BW 20
 #define DFLT_BR 1.15
-#define DFLT_FS 100
+#define DFLT_H 100
 #define DFLT_HR 1.2
 #define DFLT_WR 1.4
 
@@ -40,7 +40,6 @@ typedef struct
 	int barwidth;
 	float barwidth_ratio;
 	int nbcpu;
-	int fullscale;
 
 	// Grid
 	int zero;
@@ -67,19 +66,18 @@ void init_cgeo(chart_geometry *cgeo)
 	cgeo->barwidth_ratio = DFLT_BR;
 	cgeo->hratio = DFLT_HR;
 	cgeo->wratio = DFLT_WR;
-	cgeo->fullscale = DFLT_FS;
-	cgeo->h = cgeo->fullscale;
+	cgeo->h = DFLT_H;
 	cgeo->w = cgeo->nbcpu * cgeo->barwidth + (cgeo->nbcpu-1) * cgeo->barwidth * (cgeo->barwidth_ratio - 1);
-	cgeo->x0 = cgeo->w * (cgeo->wratio -1) / 2;
-	cgeo->y0 = cgeo->fullscale *(cgeo->hratio - 1) / 2;
+	cgeo->ww = cgeo->w * cgeo->wratio;
+	cgeo->wh = cgeo->h * cgeo->hratio;	
+	cgeo->x0 = (cgeo->ww - cgeo->w) / 2;
+	cgeo->y0 = (cgeo->wh - cgeo->h) / 2; 
 
-	cgeo->cent = cgeo->y0; //(cgeo->h - cgeo->fullscale) / 2;
-	cgeo->zero = cgeo->cent + cgeo->fullscale;
+	cgeo->cent = cgeo->y0; 
+	cgeo->zero = cgeo->cent + cgeo->h;
 	cgeo->fifty = (cgeo->cent + cgeo->zero) / 2;
 	cgeo->quart = (cgeo->fifty + cgeo->zero) / 2;
 	cgeo->troisquart = (cgeo->fifty + cgeo->cent) / 2;
-	cgeo->ww = cgeo->w * cgeo->wratio;
-	cgeo->wh = cgeo->h * cgeo->hratio;	
 }
 
 void draw_hline(cairo_t *cr, int h)
@@ -125,7 +123,7 @@ void draw_bargraph (cairo_t *cr)
 	for (j=1; j<=cgeo->nbcpu; j++)
 	{
 		//printf("CPU%c : %d %% busy\n", '0'+j-1, busyFraction[j]);
-		dy = busyFraction[j] ? busyFraction[j]*cgeo->fullscale/100 : 1;
+		dy = busyFraction[j] ? busyFraction[j]*cgeo->h/100 : 1;
 		cairo_rectangle(cr, cgeo->x0+cgeo->barwidth*cgeo->barwidth_ratio*(j-1), cgeo->zero-dy, cgeo->barwidth, dy);
 	}
 	cairo_set_source_rgb(cr, COLOR_BAR);   /* set fill color */
@@ -250,13 +248,13 @@ static void resizechange(GtkWidget *widget, GdkEvent *event, gpointer user_data)
 	cgeo->ww = new_width;
 	cgeo->wh = new_height;
 	// Compute the new geometry
-	cgeo->w = cgeo->ww /  cgeo->wratio;
+	cgeo->w = cgeo->ww / cgeo->wratio;
 	cgeo->h = cgeo->wh / cgeo->hratio;
-	cgeo->fullscale = cgeo->h;
-	cgeo->x0 = cgeo->w * (cgeo->wratio -1) / 2;
-	cgeo->y0 = cgeo->fullscale *(cgeo->hratio - 1) / 2;    
-	cgeo->cent = cgeo->y0; //(cgeo->h - cgeo->fullscale) / 2;
-	cgeo->zero = cgeo->cent + cgeo->fullscale;
+	cgeo->h = cgeo->h;
+	cgeo->x0 = (cgeo->ww - cgeo->w) / 2;
+	cgeo->y0 = (cgeo->wh - cgeo->h) / 2;    
+	cgeo->cent = cgeo->y0; //(cgeo->h - cgeo->h) / 2;
+	cgeo->zero = cgeo->cent + cgeo->h;
 	cgeo->fifty = (cgeo->cent + cgeo->zero) / 2;
 	cgeo->quart = (cgeo->fifty + cgeo->zero) / 2;
 	cgeo->troisquart = (cgeo->fifty + cgeo->cent) / 2;
