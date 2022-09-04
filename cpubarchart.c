@@ -56,8 +56,7 @@ int busyFraction[MAX_CPU] = {0};
 char *str;
 chart_geometry *cgeo;
 
-
-inline int min ( int a, int b ) { return a < b ? a : b; }
+int min ( int a, int b ) { return a < b ? a : b; }
 
 void init_cgeo(chart_geometry *cgeo)
 {
